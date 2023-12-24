@@ -7,9 +7,9 @@
         console.log("loading quote");
 
         // if quote already loaded and not requested new, quit
-        if (quote.content && !reload) {
-            return;
-        }
+        // if (quote.content && !reload) {
+        //     return;
+        // }
 
         let res = await fetch(`https://api.quotable.io/random`);
         let data = await res.json();
