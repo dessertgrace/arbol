@@ -2,6 +2,19 @@
 	import Counter from './Counter.svelte';
 	import welcome from '$lib/images/svelte-welcome.webp';
 	import welcome_fallback from '$lib/images/svelte-welcome.png';
+	import { goto } from '$app/navigation';
+
+	let name = "";
+
+	function toNamePage() {
+		if (name.length <= 0) {
+			return;
+		}
+		let url = '/tree?name='+name;
+		console.log(name);
+		console.log(url);
+		goto(url);
+	}
 </script>
 
 <svelte:head>
@@ -10,22 +23,15 @@
 </svelte:head>
 
 <section>
-	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset={welcome} type="image/webp" />
-				<img src={welcome_fallback} alt="Welcome" />
-			</picture>
-		</span>
+	<div class="text-column "> 
+		<h1>Welcome to Arbol</h1>
+		<p>Arbol is community tree app designed to soften our interaction with each other and recontextualize our relationship with online spaces.</p>
+		<p>What is your name?</p>
+		<input bind:value={name}>
+		<br>
+		<button class="main-button" on:click={toNamePage}>Go to your page</button>
+	</div>
 
-		to your new<br />SvelteKit app
-	</h1>
-
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
-	<Counter />
 </section>
 
 <style>
