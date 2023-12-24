@@ -14,6 +14,9 @@
 	let recommendedTracks = [];
 	let recommendedTrackLink = "";
 	let redirectURL;
+	let quote = {};
+	quote.content = "Never apologize for showing feelings. When you do so, you apologize for the truth.";
+	quote.author = "Benjamin Disraeli";
  
     const url = $page.url;
     console.log(url);
@@ -41,6 +44,7 @@
 
 	// ON MOUNT ****************
 	onMount(() => {
+		loadQuote();
 		runSpotify();
 	});
 
@@ -170,6 +174,29 @@
 		toMedia();
 	}
 
+	async function loadQuote() {
+		console.log("loading quote");
+
+		// if quote already loaded and not requested new, quit
+		// if (quote.content && !reload) {
+		//     return;
+		// }
+
+		let res = await fetch(`https://api.quotable.io/random`);
+		let data = await res.json();
+		console.log(data);
+		
+
+		if (!res.ok || !data) {
+			console.error('Failed to fetch quote:', data);
+			let data = {'author': 'Unknown', 'content': 'Kindness is the language that the deaf can hear and the blind can see'}
+		console.log(data);
+		}
+
+		quote.content = data.content;
+		quote.author = data.author;
+	}
+
 	
 </script>
 <!-- <svelte:window on:keydown={keydown} /> -->
@@ -205,7 +232,12 @@
 	{/if}
 
 	<h2>{dateString}</h2>
-	<Quote />
+	
+	<section>
+		<div><em>{quote.content}</em></div>
+		<footer>{quote.author}</footer>
+	</section>
+
 	<div>
 		<label for="feeling-slider"><h2 style="margin-bottom: 10px">How are you feeling today?</h2></label>
 	</div>
@@ -253,4 +285,16 @@
 			transform: translateX(0);
 		}
 	}
+
+	section {
+        border-left: 2px lightgray solid;
+        padding: 0 10px 0 30px;
+        margin: 10px 0 30px 0;
+    }
+    section div {
+        font-size: 1.1rem;
+    }
+    section footer {
+        margin-top: 10px;
+    }
 </style>
