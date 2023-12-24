@@ -26,7 +26,7 @@
         quote.author = data.author;
     }
 
-    await load();
+    load();
 </script>
 
 <section>
