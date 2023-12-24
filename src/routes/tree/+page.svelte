@@ -10,6 +10,10 @@
 	import { reduced_motion } from './reduced-motion';
 
     import { page } from '$app/stores';
+
+	let recommendedTracks = [];
+	let recommendedTrackLink = "";
+	let redirectURL;
  
     const url = $page.url;
     console.log(url);
@@ -34,6 +38,11 @@
 	} else if (name == "Auntjane") {
 		name = "Jane";
 	}
+
+	// ON MOUNT ****************
+	onMount(() => {
+		runSpotify();
+	});
 
 	let now = new Date();
 	const options = {
@@ -76,7 +85,8 @@
 
 	];
 
-	function toMedia() {
+	function toYT() {
+		// youtube
 		let optionsMedia = people_preselected_urls[name.toLowerCase()];
 		if (!optionsMedia || optionsMedia.length == 0) {
 			optionsMedia = people_preselected_urls['backup'];
@@ -88,11 +98,27 @@
 			optionsMedia = people_preselected_urls['backup'];
 			mediaurl = optionsMedia[Math.floor(Math.random()*optionsMedia.length)];
 		}
+		return mediaurl;
+	}
+
+	function toMedia() {
+		// decide if youtube or Spotify
+		let mediaurl = "";
+		if (Math.random() < 0.5) {
+			// youtube
+			mediaurl = toYT();
+		} else {
+			// spotify
+			mediaurl = recommendedTrackLink;
+			if (mediaurl.length <= 0) {
+				mediaurl = toYT();
+			}
+		}
+		console.log(mediaurl);
 		if (mediaurl.length <= 0) {
 			return;
 		}
-		console.log(mediaurl);
-		goto(mediaurl);
+		redirectURL = mediaurl;
 	}
 
 	// SPOTIFY 
@@ -112,14 +138,15 @@
 		'7uqvt9TCztQgtyQZoQdjrF','4ZtFanR9U6ndgddUvNcjcG','3Z2anmIVG8b1GelyeFQdnP','5F8iUzT8P0OChwjo6GxEkr','3vv9phIu6Y1vX3jcqaGz5Z'
 	];
 	let spotify_tracks_by_name = {};
-	spotify_tracks_by_name['juju'] = ['5NLu9XiiF80Txfg2Pl8zE8', ]
-	spotify_tracks_by_name['anne'] = ['5NLu9XiiF80Txfg2Pl8zE8', ]
-	spotify_tracks_by_name['daniel'] = ['5NLu9XiiF80Txfg2Pl8zE8', ]
-	spotify_tracks_by_name['jane'] = ['5NLu9XiiF80Txfg2Pl8zE8', ]
-	spotify_tracks_by_name['sally'] = ['5NLu9XiiF80Txfg2Pl8zE8', ]
-	spotify_tracks_by_name['peter'] = ['5NLu9XiiF80Txfg2Pl8zE8', ]
+	spotify_tracks_by_name['juju'] = ['5NLu9XiiF80Txfg2Pl8zE8', '0p6PpE8jYE85OwULXmP3M8'];
+	spotify_tracks_by_name['anne'] = ['62IjLAfQtP8c1sLvXY2pic', '5jximgvZO7gGAFQndsSltj', '36jZhZP8B5tD9rOtTEnO1W'];
+	spotify_tracks_by_name['daniel'] = ['1oqniN5rzgvhAWoq4HgY2W', '1mea3bSkSGXuIRvnydlB5b'];
+	spotify_tracks_by_name['jane'] = ['5KqldkCunQ2rWxruMEtGh0', '36jZhZP8B5tD9rOtTEnO1W'];
+	spotify_tracks_by_name['sally'] = ['0LQtEJt7x0s6knb6RKdRYc','3U8dHeggJ8IBe0UCb1gbyB'];
+	spotify_tracks_by_name['mike'] = ['70LcF31zb1H0PyJoS1Sx1r','1OvFn7fs7eXGyYVXCypH1P'];
+	// spotify_tracks_by_name['peter'] = ['5NLu9XiiF80Txfg2Pl8zE8', ]
 	spotify_tracks_by_name['grace'] = ['7uqvt9TCztQgtyQZoQdjrF','4ZtFanR9U6ndgddUvNcjcG','3Z2anmIVG8b1GelyeFQdnP','5F8iUzT8P0OChwjo6GxEkr','3vv9phIu6Y1vX3jcqaGz5Z'];
-	spotify_tracks_by_name['default'] = ['5NLu9XiiF80Txfg2Pl8zE8', ]
+	spotify_tracks_by_name['default'] = ['5NLu9XiiF80Txfg2Pl8zE8', '1mea3bSkSGXuIRvnydlB5b', '6sIki0jaxEEr5LgAhEugye', '36jZhZP8B5tD9rOtTEnO1W']
 
 	async function getRecommendations(){
 		// Endpoint reference : https://developer.spotify.com/documentation/web-api/reference/get-recommendations
@@ -131,13 +158,16 @@
 	}
 
 	async function runSpotify() {
-		let recommendedTracks = await getRecommendations();
+		recommendedTracks = await getRecommendations();
+		console.log(recommendedTracks);
+		recommendedTrackLink = recommendedTracks[0].external_urls.spotify;
 		console.log(
 			recommendedTracks.map(
 				({name, artists}) =>
 				`${name} by ${artists.map(artist => artist.name).join(', ')}`
 			)
 		);
+		toMedia();
 	}
 
 	
@@ -154,7 +184,7 @@
 
 	<h1 class="visually-hidden">Sverdle</h1>
 
-	<button on:click={runSpotify}>Spotify</button>
+	<!-- <button on:click={runSpotify}>Spotify</button> -->
 
 	{#if name}
 		<div
@@ -180,7 +210,15 @@
 		<label for="feeling-slider"><h2 style="margin-bottom: 10px">How are you feeling today?</h2></label>
 	</div>
 	<input type="range" id="feeling-slider" min="0" max="100" value="50">
-	<button class="main-button" id="recommended-media-button" on:click={toMedia}>Explore</button>
+	{#if redirectURL}
+		<a class="main-button" id="recommended-media-button" href={redirectURL} target="_blank">
+			Explore
+		</a>
+	{:else}
+		<a class="main-button" id="recommended-media-button">
+			Explore
+		</a>
+	{/if}
 
 	<div class="category-buttons">
 		<button class="category-button">laughter</button>
