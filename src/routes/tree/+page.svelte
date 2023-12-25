@@ -1,9 +1,10 @@
 <script>
 	import { confetti } from '@neoconfetti/svelte';
 	import { enhance } from '$app/forms';
-	import Quote from './Quote.svelte';
 	import { onMount } from 'svelte';
+	import { Buffer } from 'buffer';
 	import { goto } from '$app/navigation';
+	// import {response} from 'response';
 
 	let currentDate = new Date();
 
@@ -19,6 +20,7 @@
 	quote.author = "Benjamin Disraeli";
  
     const url = $page.url;
+	var token = '';
     console.log(url);
     console.log(url.searchParams.get('name')); // John
     let name = url.searchParams.get('name');
@@ -27,7 +29,7 @@
 		name = person;
 	}
 	// split and capitalize first letter
-	let splitname = name.split(" ");
+	let splitname = name.toLowerCase().split(" ");
 	console.log(splitname);
 	let formatname = "";
 	splitname.forEach((word) => {
@@ -126,8 +128,8 @@
 	}
 
 	// SPOTIFY 
-	const token = 'BQDVTRqE5skUbwi6ehJFsjvJ4wzlHIgwKyBpLp7KEWRm8MT4ugA6vyU9Xys8ehEzVc4ILbtAFswBEFBf7Lhka2zR0anN3NGpTsCAY4axLeqnmqxc6N0Wh07Kr-nZNHyojDyt9FldNNcbvobaFYiEHf2HZ4N0YHhYaStbYqe1NGv4Y4WxBV6akuql3OxdrAOSo9LJVx62Ld_89f7r5IOAchWkFyNgCP9m3Cn1lGIr0M-aVWK-Xw8Iu_EQwgHQN5DcNvhljok';
 	async function fetchWebApi(endpoint, method, body) {
+		await getAccessToken();
 		const res = await fetch(`https://api.spotify.com/${endpoint}`, {
 			headers: {
 				Authorization: `Bearer ${token}`,
@@ -137,7 +139,31 @@
 			});
 		return await res.json();
 	}
-	
+
+	async function getAccessToken() {
+		var client_id = 'ecb6fccd8ed345d0b9c1fe910f1bd66b';
+		var client_secret = '0c0968e952714d4cba06135a9c919939';
+		const url = 'https://accounts.spotify.com/api/token';
+		let response = await fetch(url, {
+			method: 'POST',
+			headers: {
+				'Authorization': 'Basic ' + (Buffer.from(client_id + ':' + client_secret).toString('base64')),
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body: 'grant_type=client_credentials',
+			json: true
+		});
+		if (response.ok) {
+			const jsonResponse = await response.json();
+			token = jsonResponse.access_token;
+			console.log(jsonResponse);
+		} else {
+			console.log(response.statusText);
+			throw new Error(`Request failed! Status code: ${response.status} ${response.statusText}`);
+		}
+	}
+
+
 	const topTracksIds = [
 		'7uqvt9TCztQgtyQZoQdjrF','4ZtFanR9U6ndgddUvNcjcG','3Z2anmIVG8b1GelyeFQdnP','5F8iUzT8P0OChwjo6GxEkr','3vv9phIu6Y1vX3jcqaGz5Z'
 	];
@@ -164,6 +190,10 @@
 	async function runSpotify() {
 		recommendedTracks = await getRecommendations();
 		console.log(recommendedTracks);
+		if (!recommendedTracks) {
+			toMedia();
+			return;
+		}
 		recommendedTrackLink = recommendedTracks[0].external_urls.spotify;
 		console.log(
 			recommendedTracks.map(
