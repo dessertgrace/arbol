@@ -88,7 +88,7 @@
 		'backup'
 	];
 	people_preselected_urls['juju'] = [
-
+		"",
 	];
 
 	function toYT() {
@@ -110,7 +110,7 @@
 	function toMedia() {
 		// decide if youtube or Spotify
 		let mediaurl = "";
-		if (Math.random() < 0.5) {
+		if (Math.random() < 0.3) {
 			// youtube
 			mediaurl = toYT();
 		} else {
